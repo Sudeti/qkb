@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - QKB Intelligence{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card" style="border: 3px solid #121212; background: #ffffff;">
+                <div class="card-body p-5">
+                    <h2 class="text-center mb-4" style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 4px solid #121212; padding-bottom: 1rem;">WELCOME BACK</h2>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Email/Username -->
+                        <div class="mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label" style="font-weight: 600; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem;">EMAIL OR USERNAME</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                                <div class="text-danger small mt-1">{{ form.username.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Password -->
+                        <div class="mb-3">
+                            <label for="{{ form.password.id_for_label }}" class="form-label" style="font-weight: 600; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem;">PASSWORD</label>
+                            {{ form.password }}
+                            {% if form.password.errors %}
+                                <div class="text-danger small mt-1">{{ form.password.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Remember Me -->
+                        <div class="mb-3 form-check">
+                            {{ form.remember_me }}
+                            <label class="form-check-label" for="{{ form.remember_me.id_for_label }}" style="color: #121212; font-weight: 600;">
+                                REMEMBER ME
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn w-100 mb-3" style="background: #121212; border: 3px solid #121212; color: #ffffff; padding: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">LOG IN</button>
+                    </form>
+                    
+                    <!-- Social Login -->
+                    <div class="text-center mb-3">
+                        <p style="color: #666666; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">OR</p>
+                    </div>
+                    
+                    <a href="{% url 'social:begin' 'google-oauth2' %}" class="btn w-100 mb-3" style="border: 3px solid #121212; background: #ffffff; color: #121212; padding: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none; display: block; text-align: center;">
+                        CONTINUE WITH GOOGLE
+                    </a>
+                    
+                    <hr class="my-4" style="border-top: 3px solid #121212;">
+                    
+                    <p class="text-center mb-0" style="color: #666666; font-size: 0.9375rem; font-weight: 600;">
+                        DON'T HAVE AN ACCOUNT? <a href="{% url 'accounts:signup' %}" style="color: #121212; text-decoration: underline; text-transform: uppercase; letter-spacing: 0.05em;">SIGN UP</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control {
+    border: 3px solid #121212 !important;
+    background: #ffffff !important;
+    color: #121212 !important;
+    padding: 0.5rem 1rem !important;
+}
+
+.form-control:focus {
+    border-color: #121212 !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.form-check-input {
+    border: 2px solid #121212 !important;
+}
+
+.form-check-input:checked {
+    background-color: #121212 !important;
+    border-color: #121212 !important;
+}
+</style>
+{% endblock %}

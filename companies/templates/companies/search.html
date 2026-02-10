@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}QKB Intelligence{% endblock %}
+
+{% block extra_head %}
+<style>
+    body { background: #0a0a0a; color: #e0e0e0; }
+
+    .header { padding: 40px 20px 20px; text-align: center; }
+    .header h1 { font-size: 28px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+    .header p { color: #666; margin-top: 6px; font-size: 14px; }
+
+    .search-box { max-width: 640px; margin: 30px auto; padding: 0 20px; }
+    .search-box form { display: flex; gap: 8px; }
+    .search-box input[type="text"] {
+        flex: 1; padding: 14px 18px; font-size: 16px;
+        background: #161616; border: 1px solid #2a2a2a; border-radius: 8px;
+        color: #fff; outline: none; transition: border-color 0.2s;
+    }
+    .search-box input[type="text"]:focus { border-color: #444; }
+    .search-box input[type="text"]::placeholder { color: #555; }
+    .search-box button {
+        padding: 14px 28px; font-size: 15px; font-weight: 600;
+        background: #fff; color: #000; border: none; border-radius: 8px;
+        cursor: pointer; transition: background 0.2s;
+    }
+    .search-box button:hover { background: #ddd; }
+
+    .results { max-width: 640px; margin: 0 auto; padding: 0 20px 60px; }
+    .results-meta { color: #666; font-size: 13px; margin-bottom: 16px; }
+
+    .company-card {
+        background: #161616; border: 1px solid #222; border-radius: 8px;
+        padding: 18px 20px; margin-bottom: 10px; transition: border-color 0.2s;
+        text-decoration: none; display: block; color: inherit;
+    }
+    .company-card:hover { border-color: #444; }
+    .company-name { font-size: 16px; font-weight: 600; color: #fff; }
+    .company-nipt { font-size: 13px; color: #888; font-family: monospace; margin-top: 2px; }
+    .company-meta { display: flex; gap: 16px; margin-top: 8px; font-size: 13px; color: #666; flex-wrap: wrap; }
+    .status-badge {
+        display: inline-block; padding: 2px 8px; border-radius: 4px;
+        font-size: 11px; font-weight: 600; text-transform: uppercase;
+    }
+    .status-active { background: #0a2e1a; color: #34d399; }
+    .status-suspended { background: #2e1a0a; color: #f59e0b; }
+    .status-dissolved { background: #2e0a0a; color: #ef4444; }
+    .status-bankruptcy { background: #2e0a0a; color: #ef4444; }
+    .status-in_liquidation { background: #2e1a0a; color: #f59e0b; }
+
+    .empty { text-align: center; padding: 60px 20px; color: #444; }
+    .on-demand { background: #1a1a2e; border: 1px solid #2a2a4e; border-radius: 8px; padding: 18px 20px; margin-bottom: 16px; text-align: center; }
+    .on-demand p { color: #8888cc; font-size: 14px; }
+    .on-demand .hint { color: #555; font-size: 12px; margin-top: 6px; }
+
+    .limit-banner { background: #2e1a0a; border: 1px solid #4e2a0a; border-radius: 8px; padding: 18px 20px; margin-bottom: 16px; text-align: center; }
+    .limit-banner p { color: #f59e0b; font-size: 14px; margin: 0; }
+    .limit-banner a { color: #f59e0b; font-weight: 600; text-decoration: underline; }
+
+    .searches-counter { color: #555; font-size: 12px; text-align: center; margin-top: 8px; }
+
+    /* Override navbar for dark page */
+    .navbar { background: #0a0a0a !important; border-bottom-color: #1a1a1a !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="header">
+        <h1>QKB Intelligence</h1>
+        <p>Albanian Company Registry — Search by name, NIPT, or person</p>
+    </div>
+
+    <div class="search-box">
+        <form method="get">
+            <input type="text" name="q" value="{{ query }}" placeholder="Search company name, NIPT, shareholder..." autofocus>
+            <button type="submit">Search</button>
+        </form>
+        {% if not is_premium and searches_remaining is not None %}
+            <div class="searches-counter">{{ searches_remaining }} search{{ searches_remaining|pluralize:"es" }} remaining today</div>
+        {% endif %}
+    </div>
+
+    <div class="results">
+        {% if limit_reached %}
+            <div class="limit-banner">
+                <p>Daily search limit reached (10/day on the free plan).</p>
+                <p style="margin-top: 8px;"><a href="{% url 'accounts:pricing' %}">Upgrade to Professional</a> for unlimited searches.</p>
+            </div>
+        {% elif query %}
+            <div class="results-meta">{{ result_count }} result{{ result_count|pluralize }} for "{{ query }}"</div>
+            {% for company in results %}
+                <a href="{% url 'companies:company_detail' company.nipt %}" class="company-card">
+                    <div class="company-name">{{ company.name }}</div>
+                    <div class="company-nipt">{{ company.nipt }}</div>
+                    <div class="company-meta">
+                        <span class="status-badge status-{{ company.status }}">{{ company.get_status_display }}</span>
+                        <span>{{ company.get_legal_form_display }}</span>
+                        {% if company.city %}<span>{{ company.city }}</span>{% endif %}
+                        {% if company.registration_date %}<span>Reg. {{ company.registration_date }}</span>{% endif %}
+                    </div>
+                </a>
+            {% empty %}
+                {% if on_demand_triggered %}
+                <div class="on-demand">
+                    <p>Company not yet in our database. We're fetching it now.</p>
+                    <p class="hint">Refresh this page in ~30 seconds.</p>
+                </div>
+                {% else %}
+                <div class="empty">No companies found.</div>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <div class="empty">Enter a company name, NIPT, or person's name to search.</div>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - QKB Intelligence{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mb-4" style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 4px solid #121212; padding-bottom: 1rem;">DASHBOARD</h1>
+            
+            <div class="card mb-4" style="border: 3px solid #121212; background: #ffffff;">
+                <div class="card-body p-4">
+                    <h3 class="card-title mb-3" style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em;">WELCOME, {{ profile.display_name|default:user.username|upper }}!</h3>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-2" style="font-weight: 600; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem;">EMAIL:</p>
+                            <p class="mb-3" style="color: #666666; font-family: 'Courier New', monospace;">{{ user.email }}</p>
+                            
+                            <p class="mb-2" style="font-weight: 600; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem;">USERNAME:</p>
+                            <p class="mb-3" style="color: #666666; font-family: 'Courier New', monospace;">{{ user.username }}</p>
+                            
+                            <p class="mb-2" style="font-weight: 600; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem;">EMAIL VERIFIED:</p>
+                            <p class="mb-3">
+                                {% if user.is_email_verified %}
+                                    <span style="padding: 0.25rem 0.5rem; border: 2px solid #121212; background: #ffffff; color: #121212; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">YES</span>
+                                {% else %}
+                                    <span style="padding: 0.25rem 0.5rem; border: 2px solid #121212; background: #ffffff; color: #121212; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">NO</span>
+                                    <a href="{% url 'accounts:resend_verification' %}" class="ms-2" style="color: #121212; text-decoration: underline; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem;">RESEND VERIFICATION</a>
+                                {% endif %}
+                            </p>
+                            
+                            <p class="mb-2" style="font-weight: 600; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem;">MEMBER SINCE:</p>
+                            <p class="mb-3" style="color: #666666; font-family: 'Courier New', monospace;">{{ user.date_joined|date:"F Y"|upper }}</p>
+                            
+                            <p class="mb-2" style="font-weight: 600; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem;">ACCOUNT STATUS:</p>
+                            <p class="mb-3">
+                                {% if user.is_premium or user.is_superuser %}
+                                    <span style="padding: 0.5rem 1rem; border: 3px solid #121212; background: #121212; color: #ffffff; font-weight: 700; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; display: inline-block;">PREMIUM</span>
+                                {% else %}
+                                    <span style="padding: 0.5rem 1rem; border: 3px solid #121212; background: #ffffff; color: #121212; font-weight: 700; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; display: inline-block;">FREE</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            {% if profile.avatar %}
+                                <img src="{{ profile.avatar.url }}" alt="Profile Picture" class="img-thumbnail" style="max-width: 150px; border: 3px solid #121212;">
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'accounts:profile_update' %}" class="btn" style="background: #ffffff; border: 3px solid #121212; color: #121212; padding: 0.75rem 2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none; display: inline-block;">
+                            UPDATE PROFILE
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Your Plan Section -->
+            <div class="card mb-4" style="border: 3px solid #121212; background: #ffffff;">
+                <div class="card-body p-4">
+                    <h3 class="card-title mb-3" style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 3px solid #121212; padding-bottom: 0.75rem;">YOUR PLAN</h3>
+
+                    <div class="d-flex align-items-center mb-3">
+                        {% if is_premium %}
+                            <span style="padding: 0.5rem 1rem; border: 3px solid #121212; background: #121212; color: #ffffff; font-weight: 700; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; display: inline-block;">PROFESSIONAL</span>
+                            <span class="ms-3" style="color: #666666; font-size: 0.875rem;">Unlimited searches</span>
+                        {% else %}
+                            <span style="padding: 0.5rem 1rem; border: 3px solid #121212; background: #ffffff; color: #121212; font-weight: 700; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; display: inline-block;">FREE</span>
+                            <span class="ms-3" style="color: #666666; font-size: 0.875rem;">{{ daily_limit }} searches/day</span>
+                        {% endif %}
+                    </div>
+
+                    {% if not is_premium %}
+                        <p class="mb-2" style="font-weight: 600; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem;">SEARCHES USED TODAY:</p>
+                        <div style="background: #e9ecef; border-radius: 0; height: 24px; border: 2px solid #121212; margin-bottom: 0.5rem;">
+                            <div style="background: {% if search_usage_pct >= 100 %}#dc3545{% elif search_usage_pct >= 80 %}#f59e0b{% else %}#121212{% endif %}; height: 100%; width: {{ search_usage_pct }}%; transition: width 0.3s;"></div>
+                        </div>
+                        <p style="color: #666666; font-size: 0.875rem; font-family: 'Courier New', monospace;">{{ searches_today }} / {{ daily_limit }} used</p>
+
+                        <div class="mt-3">
+                            <a href="{% url 'accounts:pricing' %}" style="background: #121212; border: 3px solid #121212; color: #ffffff; padding: 0.75rem 2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none; display: inline-block;">UPGRADE TO PROFESSIONAL</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- GDPR Data Management Section -->
+            <div class="card mb-4" style="border: 3px solid #121212; background: #ffffff;">
+                <div class="card-body p-4">
+                    <h3 class="card-title mb-3" style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 3px solid #121212; padding-bottom: 0.75rem;">DATA MANAGEMENT</h3>
+                    
+                    <p class="mb-3" style="color: #666666; font-size: 0.875rem; line-height: 1.6;">
+                        Under GDPR, you have the right to access, export, and delete your personal data. 
+                        You can manage your data using the options below.
+                    </p>
+                    
+                    <div class="d-flex flex-column flex-md-row gap-3">
+                        <!-- Export Data -->
+                        <a href="{% url 'accounts:export_data' %}" class="btn" style="background: #ffffff; border: 3px solid #121212; color: #121212; padding: 0.75rem 2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none; display: inline-block; text-align: center;">
+                            EXPORT MY DATA
+                        </a>
+                        
+                        <!-- Delete Account -->
+                        {% if not user.is_superuser %}
+                        <button type="button" class="btn" style="background: #ffffff; border: 3px solid #dc3545; color: #dc3545; padding: 0.75rem 2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;" onclick="confirmDeleteAccount()">
+                            DELETE ACCOUNT
+                        </button>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mt-3">
+                        <p class="mb-0" style="color: #666666; font-size: 0.75rem; line-height: 1.5;">
+                            <strong>Note:</strong> Exporting data downloads all your personal information in JSON format. 
+                            Deleting your account permanently removes all your data and cannot be undone.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Account Confirmation Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border: 3px solid #121212;">
+            <div class="modal-header" style="border-bottom: 3px solid #121212; background: #ffffff;">
+                <h5 class="modal-title" id="deleteAccountModalLabel" style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em;">CONFIRM ACCOUNT DELETION</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="background: #ffffff;">
+                <p style="color: #121212; font-weight: 600; margin-bottom: 1rem;">
+                    Are you sure you want to delete your account?
+                </p>
+                <p style="color: #666666; font-size: 0.875rem; margin-bottom: 0;">
+                    This action cannot be undone. All your personal data, profile information, and account history will be permanently deleted.
+                </p>
+            </div>
+            <div class="modal-footer" style="border-top: 3px solid #121212; background: #ffffff;">
+                <button type="button" class="btn" style="background: #ffffff; border: 3px solid #121212; color: #121212; padding: 0.5rem 1.5rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;" data-bs-dismiss="modal">
+                    CANCEL
+                </button>
+                <form method="post" action="{% url 'accounts:delete_account' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn" style="background: #dc3545; border: 3px solid #dc3545; color: #ffffff; padding: 0.5rem 1.5rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">
+                        DELETE ACCOUNT
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDeleteAccount() {
+    var modal = new bootstrap.Modal(document.getElementById('deleteAccountModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

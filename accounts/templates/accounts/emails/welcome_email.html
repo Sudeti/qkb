@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to {{ site_name }}!</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #121212;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 2rem;
+        }
+        .header {
+            border-bottom: 4px solid #121212;
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #121212;
+        }
+        .content {
+            margin-bottom: 2rem;
+        }
+        .content p {
+            margin: 1rem 0;
+            font-size: 0.9375rem;
+        }
+        .success-box {
+            background: #ffffff;
+            border: 3px solid #121212;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+        .success-box h2 {
+            color: #121212;
+            margin: 0 0 0.5rem 0;
+            font-size: 1.125rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .success-box p {
+            margin: 0;
+            color: #121212;
+            font-weight: 600;
+        }
+        .button {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: #121212;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin: 1.5rem 0;
+            border: 3px solid #121212;
+            font-size: 0.875rem;
+        }
+        .button:hover {
+            background: #ffffff;
+            color: #121212;
+        }
+        .footer {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 3px solid #121212;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #666666;
+        }
+        .footer strong {
+            color: #121212;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 800;
+        }
+        strong {
+            font-weight: 700;
+            color: #121212;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>WELCOME TO {{ site_name|upper }}</h1>
+        </div>
+        <div class="content">
+            <p>Hi {{ user.username }},</p>
+            
+            <div class="success-box">
+                <h2>✓ EMAIL VERIFIED</h2>
+                <p>
+                    Your email address has been successfully verified and your account is now active.
+                </p>
+            </div>
+            
+            <div style="background: #f5f5f5; border: 3px solid #121212; padding: 1.5rem; margin: 1.5rem 0;">
+                <p style="font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem; margin-bottom: 0.75rem; color: #121212;">YOUR ACCOUNT INCLUDES:</p>
+                <ul style="margin: 0; padding-left: 1.5rem; font-size: 0.9375rem; line-height: 1.8;">
+                    <li>Search the Albanian Company Registry by name, NIPT, or shareholder</li>
+                    <li>View detailed company profiles with shareholders and legal representatives</li>
+                    <li>Track ownership changes over time</li>
+                    <li>On-demand company data fetching</li>
+                </ul>
+            </div>
+            
+            
+            <div style="text-align: center;">
+                <a href="{{ login_url }}" class="button">LOG IN TO YOUR ACCOUNT</a>
+            </div>
+            
+            <p>Thank you for joining us! If you have any questions, feel free to reach out to our support team.</p>
+        </div>
+        <div class="footer">
+            <p style="margin: 0;">© {% now "Y" %} {{ site_name|upper }}. ALL RIGHTS RESERVED.</p>
+            <p style="margin: 0.5rem 0 0 0;">This is an automated email, please do not reply.</p>
+        </div>
+    </div>
+</body>
+</html>

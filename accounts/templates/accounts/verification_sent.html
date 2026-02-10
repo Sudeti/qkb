@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Verification Email Sent - QKB Intelligence{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card" style="border: 3px solid #121212; background: #ffffff;">
+                <div class="card-body p-5 text-center">
+                    <div class="mb-4" style="font-size: 3rem; color: #121212;">✉</div>
+                    <h2 class="mb-3" style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 4px solid #121212; padding-bottom: 1rem;">CHECK YOUR EMAIL</h2>
+                    <p style="color: #666666; margin-bottom: 1rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem;">
+                        WE'VE SENT A VERIFICATION LINK TO YOUR EMAIL ADDRESS. PLEASE CHECK YOUR INBOX AND CLICK THE LINK TO VERIFY YOUR ACCOUNT.
+                    </p>
+                    <p style="color: #666666; margin-bottom: 4rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.75rem;">
+                        THE VERIFICATION LINK WILL EXPIRE IN 24 HOURS.
+                    </p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="{% url 'accounts:resend_verification' %}" class="btn" style="background: #ffffff; border: 3px solid #121212; color: #121212; padding: 0.75rem 2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none; display: inline-block;">RESEND EMAIL</a>
+                        <a href="{% url 'accounts:login' %}" class="btn" style="background: #121212; border: 3px solid #121212; color: #ffffff; padding: 0.75rem 2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none; display: inline-block;">GO TO LOGIN</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

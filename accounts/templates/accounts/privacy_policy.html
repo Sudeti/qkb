@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Privacy Policy - QKB Intelligence{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card" style="border: 3px solid #121212; background: #ffffff;">
+                <div class="card-body p-5">
+                    <h1 class="mb-4" style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 4px solid #121212; padding-bottom: 1rem;">PRIVACY POLICY & GDPR</h1>
+                    
+                    <div style="line-height: 1.8; color: #333333;">
+                        <h2 style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2rem; margin-bottom: 1rem; font-size: 1.25rem;">1. DATA COLLECTION</h2>
+                        <p>We collect the following personal data when you create an account:</p>
+                        <ul>
+                            <li>Email address (required for account verification)</li>
+                            <li>Username (required for login)</li>
+                            <li>Password (stored as encrypted hash, never in plain text)</li>
+                            <li>Profile information (optional): first name, last name, phone, bio, avatar</li>
+                            <li>IP addresses (for security and verification logs, anonymized after 1 year)</li>
+                            <li>Account activity: date joined, last login, email verification status</li>
+                        </ul>
+                        
+                        <h2 style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2rem; margin-bottom: 1rem; font-size: 1.25rem;">2. HOW WE USE YOUR DATA</h2>
+                        <ul>
+                            <li>To provide and maintain your account</li>
+                            <li>To verify your email address and prevent fraud</li>
+                            <li>To send important account-related communications</li>
+                            <li>To improve our services and user experience</li>
+                            <li>To comply with legal obligations</li>
+                        </ul>
+                        
+                        <h2 style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2rem; margin-bottom: 1rem; font-size: 1.25rem;">3. YOUR RIGHTS UNDER GDPR</h2>
+                        <p>You have the following rights regarding your personal data:</p>
+                        <ul>
+                            <li><strong>Right to Access:</strong> View all your personal data in your dashboard</li>
+                            <li><strong>Right to Rectification:</strong> Update your profile information at any time</li>
+                            <li><strong>Right to Erasure:</strong> Delete your account and all associated data</li>
+                            <li><strong>Right to Data Portability:</strong> Export your data in JSON format</li>
+                            <li><strong>Right to Object:</strong> Withdraw consent for data processing</li>
+                        </ul>
+                        <p>You can exercise these rights directly from your <a href="{% url 'accounts:dashboard' %}" style="color: #121212; text-decoration: underline;">dashboard</a>.</p>
+                        
+                        <h2 style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2rem; margin-bottom: 1rem; font-size: 1.25rem;">4. DATA RETENTION</h2>
+                        <ul>
+                            <li>Account data: Retained while your account is active</li>
+                            <li>Email verification logs: Automatically deleted after 1 year</li>
+                            <li>IP addresses: Anonymized (only first 2 octets retained) after 1 year</li>
+                            <li>Deleted accounts: All data is permanently removed within 30 days</li>
+                        </ul>
+                        
+                        <h2 style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2rem; margin-bottom: 1rem; font-size: 1.25rem;">5. DATA SECURITY</h2>
+                        <p>We implement appropriate technical and organizational measures to protect your personal data:</p>
+                        <ul>
+                            <li>Passwords are hashed using industry-standard algorithms</li>
+                            <li>HTTPS encryption for all data transmission</li>
+                            <li>Secure session management</li>
+                            <li>Regular security audits</li>
+                        </ul>
+                        
+                        <h2 style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2rem; margin-bottom: 1rem; font-size: 1.25rem;">6. COOKIES</h2>
+                        <p>We use cookies for:</p>
+                        <ul>
+                            <li>Session management (required for login)</li>
+                            <li>Analytics (with your consent)</li>
+                        </ul>
+                        <p>You can manage cookie preferences through the cookie consent banner.</p>
+                        
+                        <h2 style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2rem; margin-bottom: 1rem; font-size: 1.25rem;">7. THIRD-PARTY SERVICES</h2>
+                        <p>We use the following third-party services:</p>
+                        <ul>
+                            <li>Google OAuth (for social login) - subject to Google's privacy policy</li>
+                            <li>Email service provider (for sending verification emails)</li>
+                        </ul>
+                        
+                        <h2 style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2rem; margin-bottom: 1rem; font-size: 1.25rem;">8. CONTACT</h2>
+                        <p>For questions about this privacy policy or to exercise your GDPR rights, please contact us at:</p>
+                        <p style="font-weight: 600; color: #121212;">info@qkb.al</p>
+                        
+                        <h2 style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2rem; margin-bottom: 1rem; font-size: 1.25rem;">9. CHANGES TO THIS POLICY</h2>
+                        <p>We may update this privacy policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Last Updated" date.</p>
+                        <p style="color: #666666; font-size: 0.875rem; margin-top: 2rem;">
+                            <em>Last Updated: {% now "F d, Y" %}</em>
+                        </p>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'accounts:signup' %}" class="btn" style="background: #121212; border: 3px solid #121212; color: #ffffff; padding: 0.75rem 2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none; display: inline-block;">
+                            BACK TO SIGNUP
+                        </a>
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'accounts:dashboard' %}" class="btn ms-2" style="background: #ffffff; border: 3px solid #121212; color: #121212; padding: 0.75rem 2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none; display: inline-block;">
+                            GO TO DASHBOARD
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

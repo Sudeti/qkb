@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ company.name }} — QKB Intelligence{% endblock %}
+
+{% block extra_head %}
+<style>
+    body { background: #0a0a0a; color: #e0e0e0; }
+
+    .back { display: inline-block; padding: 20px; color: #888; text-decoration: none; font-size: 14px; }
+    .back:hover { color: #fff; }
+
+    .detail-container { max-width: 720px; margin: 0 auto; padding: 0 20px 60px; }
+
+    .company-header { margin-bottom: 32px; }
+    .company-header h1 { font-size: 24px; font-weight: 700; color: #fff; }
+    .company-header .nipt { font-family: monospace; color: #888; font-size: 15px; margin-top: 4px; }
+
+    .status-badge {
+        display: inline-block; padding: 3px 10px; border-radius: 4px;
+        font-size: 12px; font-weight: 600; text-transform: uppercase; margin-top: 8px;
+    }
+    .status-active { background: #0a2e1a; color: #34d399; }
+    .status-suspended { background: #2e1a0a; color: #f59e0b; }
+    .status-dissolved { background: #2e0a0a; color: #ef4444; }
+    .status-bankruptcy { background: #2e0a0a; color: #ef4444; }
+    .status-in_liquidation { background: #2e1a0a; color: #f59e0b; }
+
+    .section { margin-bottom: 28px; }
+    .section h2 { font-size: 14px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; border-bottom: 1px solid #1a1a1a; padding-bottom: 8px; }
+
+    .detail-grid { display: grid; grid-template-columns: 140px 1fr; gap: 8px 16px; font-size: 14px; }
+    .detail-label { color: #666; }
+    .detail-value { color: #ddd; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; color: #666; font-weight: 500; padding: 8px 12px; border-bottom: 1px solid #222; }
+    td { padding: 10px 12px; border-bottom: 1px solid #161616; }
+    tr:hover td { background: #111; }
+    .pct { font-family: monospace; color: #34d399; }
+
+    .change-item { background: #161616; border-radius: 6px; padding: 14px; margin-bottom: 8px; }
+    .change-date { font-size: 12px; color: #888; font-family: monospace; }
+    .change-desc { margin-top: 4px; font-size: 14px; }
+
+    /* Override navbar for dark page */
+    .navbar { background: #0a0a0a !important; border-bottom-color: #1a1a1a !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+    <a href="{% url 'companies:search' %}" class="back">&larr; Back to search</a>
+
+    <div class="detail-container">
+        <div class="company-header">
+            <h1>{{ company.name }}</h1>
+            <div class="nipt">{{ company.nipt }}</div>
+            <span class="status-badge status-{{ company.status }}">{{ company.get_status_display }}</span>
+        </div>
+
+        <div class="section">
+            <h2>Company Details</h2>
+            <div class="detail-grid">
+                <span class="detail-label">Legal Form</span>
+                <span class="detail-value">{{ company.get_legal_form_display }}</span>
+
+                {% if company.registration_date %}
+                <span class="detail-label">Registered</span>
+                <span class="detail-value">{{ company.registration_date }}</span>
+                {% endif %}
+
+                {% if company.capital %}
+                <span class="detail-label">Capital</span>
+                <span class="detail-value">{{ company.capital }} {{ company.capital_currency }}</span>
+                {% endif %}
+
+                {% if company.address %}
+                <span class="detail-label">Address</span>
+                <span class="detail-value">{{ company.address }}</span>
+                {% endif %}
+
+                {% if company.city %}
+                <span class="detail-label">City</span>
+                <span class="detail-value">{{ company.city }}{% if company.municipality %}, {{ company.municipality }}{% endif %}</span>
+                {% endif %}
+
+                {% if company.nace_code %}
+                <span class="detail-label">Activity</span>
+                <span class="detail-value">{{ company.nace_code }} — {{ company.nace_description }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if shareholders %}
+        <div class="section">
+            <h2>Shareholders</h2>
+            <table>
+                <thead>
+                    <tr><th>Name</th><th>Type</th><th>Ownership</th></tr>
+                </thead>
+                <tbody>
+                    {% for s in shareholders %}
+                    <tr>
+                        <td>{{ s.full_name|default:s.parent_company_name }}</td>
+                        <td>{{ s.get_shareholder_type_display }}</td>
+                        <td class="pct">{% if s.ownership_pct %}{{ s.ownership_pct }}%{% else %}—{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        {% if representatives %}
+        <div class="section">
+            <h2>Legal Representatives</h2>
+            <table>
+                <thead>
+                    <tr><th>Name</th><th>Role</th><th>Since</th></tr>
+                </thead>
+                <tbody>
+                    {% for r in representatives %}
+                    <tr>
+                        <td>{{ r.full_name }}</td>
+                        <td>{{ r.role }}</td>
+                        <td>{{ r.appointed_date|default:"—" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        {% if ownership_changes %}
+        <div class="section">
+            <h2>Ownership History</h2>
+            {% for change in ownership_changes %}
+            <div class="change-item">
+                <div class="change-date">{{ change.change_date }}</div>
+                <div class="change-desc">{{ change.description }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}

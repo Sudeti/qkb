@@ -1,0 +1,409 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Analytics Dashboard - Admin Only{% endblock %}
+
+{% block extra_head %}
+<style>
+    .analytics-page {
+        padding: 3rem 0;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    
+    .analytics-header {
+        background: #ffffff;
+        padding: 2rem 0;
+        margin-bottom: 3rem;
+        border-bottom: 4px solid #121212;
+        text-align: center;
+    }
+    
+    .analytics-header h1 {
+        color: #121212;
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .period-selector {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        margin-top: 1rem;
+    }
+    
+    .period-selector a {
+        padding: 0.5rem 1rem;
+        border: 3px solid #121212;
+        background: #ffffff;
+        color: #121212;
+        text-decoration: none;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.875rem;
+        letter-spacing: 0.05em;
+    }
+    
+    .period-selector a.active {
+        background: #121212;
+        color: #ffffff;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+    
+    .stat-card {
+        background: #ffffff;
+        border: 3px solid #121212;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .stat-label {
+        font-size: 0.8125rem;
+        color: #666666;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 600;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        color: #121212;
+        font-weight: 700;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .section {
+        background: #ffffff;
+        border: 3px solid #121212;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .section h2 {
+        color: #121212;
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: 1.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid #121212;
+        padding-bottom: 0.5rem;
+    }
+    
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+    
+    .data-table th {
+        background: #f5f5f5;
+        padding: 0.75rem;
+        text-align: left;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.8125rem;
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid #121212;
+    }
+    
+    .data-table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #e0e0e0;
+        font-size: 0.875rem;
+    }
+    
+    .data-table tr:hover {
+        background: #f8f9fa;
+    }
+    
+    .progress-bar {
+        background: #e0e0e0;
+        height: 20px;
+        border: 2px solid #121212;
+        position: relative;
+        margin-top: 0.5rem;
+    }
+    
+    .progress-fill {
+        background: #121212;
+        height: 100%;
+        transition: width 0.3s;
+    }
+    
+    .chart-container {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border: 2px solid #121212;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analytics-page">
+    <div class="container">
+        <!-- Header -->
+        <div class="analytics-header">
+            <h1>📊 ANALYTICS DASHBOARD</h1>
+            <p style="color: #666666; font-size: 0.875rem; margin-top: 0.5rem;">
+                Click tracking statistics for the last {{ days }} days
+            </p>
+            
+            <!-- Period Selector -->
+            <div class="period-selector">
+                <a href="?days=7" class="{% if days == 7 %}active{% endif %}">7 Days</a>
+                <a href="?days=30" class="{% if days == 30 %}active{% endif %}">30 Days</a>
+                <a href="?days=90" class="{% if days == 90 %}active{% endif %}">90 Days</a>
+                <a href="?days=365" class="{% if days == 365 %}active{% endif %}">1 Year</a>
+            </div>
+        </div>
+        
+        <!-- Summary Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Clicks</div>
+                <div class="stat-value">{{ stats.total_clicks|intcomma }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Authenticated</div>
+                <div class="stat-value">{{ stats.authenticated_clicks|intcomma }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Anonymous</div>
+                <div class="stat-value">{{ stats.anonymous_clicks|intcomma }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Records</div>
+                <div class="stat-value">{{ total_tracking_records|intcomma }}</div>
+            </div>
+        </div>
+        
+        <!-- User Type Breakdown -->
+        <div class="section">
+            <h2>User Type Breakdown</h2>
+            <p style="color: #666666; font-size: 0.875rem; margin-bottom: 1rem;">
+                Note: Premium users are not tracked for privacy reasons.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                <div>
+                    <div style="font-weight: 600; margin-bottom: 0.5rem;">Anonymous</div>
+                    <div style="font-size: 1.5rem; font-weight: 700; font-family: 'Courier New', monospace;">
+                        {{ user_type_stats.anonymous|intcomma }}
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {% widthratio user_type_stats.anonymous stats.total_clicks 100 %}%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="font-weight: 600; margin-bottom: 0.5rem;">Authenticated (Free)</div>
+                    <div style="font-size: 1.5rem; font-weight: 700; font-family: 'Courier New', monospace;">
+                        {{ user_type_stats.authenticated_free|intcomma }}
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {% widthratio user_type_stats.authenticated_free stats.total_clicks 100 %}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Page Type Breakdown -->
+        <div class="section">
+            <h2>Page Views by Type</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Page Type</th>
+                        <th style="text-align: right;">Views</th>
+                        <th style="text-align: right;">Percentage</th>
+                        <th>Visual</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for page_stat in stats.page_stats %}
+                    <tr>
+                        <td style="font-weight: 600;">
+                            {{ page_stat.display_name }}
+                        </td>
+                        <td style="text-align: right; font-family: 'Courier New', monospace;">
+                            {{ page_stat.count|intcomma }}
+                        </td>
+                        <td style="text-align: right; font-family: 'Courier New', monospace;">
+                            {% widthratio page_stat.count stats.total_clicks 100 %}%
+                        </td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {% widthratio page_stat.count stats.total_clicks 100 %}%"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: #666666; padding: 2rem;">
+                            No data available for this period.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Daily Breakdown -->
+        <div class="section">
+            <h2>Daily Activity (Last {{ days }} Days)</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th style="text-align: right;">Clicks</th>
+                        <th>Visual</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for daily in stats.daily_stats|slice:":30" %}
+                    <tr>
+                        <td style="font-weight: 600;">{{ daily.day }}</td>
+                        <td style="text-align: right; font-family: 'Courier New', monospace;">
+                            {{ daily.count|intcomma }}
+                        </td>
+                        <td>
+                            <div class="progress-bar">
+                                {% with max_count=stats.daily_stats|first %}
+                                <div class="progress-fill" style="width: {% widthratio daily.count max_count.count 100 %}%"></div>
+                                {% endwith %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: #666666; padding: 2rem;">
+                            No daily data available.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Top Users -->
+        {% if stats.top_users %}
+        <div class="section">
+            <h2>Top Active Users</h2>
+            <p style="color: #666666; font-size: 0.875rem; margin-bottom: 1rem;">
+                Note: Only free users are tracked. Premium users are excluded from tracking.
+            </p>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>User Email</th>
+                        <th style="text-align: right;">Clicks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user_stat in stats.top_users %}
+                    <tr>
+                        <td style="font-weight: 600;">{{ user_stat.user__email }}</td>
+                        <td style="text-align: right; font-family: 'Courier New', monospace;">
+                            {{ user_stat.count|intcomma }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        
+        <!-- Country Breakdown -->
+        {% if country_stats %}
+        <div class="section">
+            <h2>Country-Specific Page Views</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Country Code</th>
+                        <th style="text-align: right;">Views</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for country_stat in country_stats %}
+                    <tr>
+                        <td style="font-weight: 600; font-family: 'Courier New', monospace;">
+                            {{ country_stat.country_code }}
+                        </td>
+                        <td style="text-align: right; font-family: 'Courier New', monospace;">
+                            {{ country_stat.count|intcomma }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        
+        <!-- Region Breakdown -->
+        {% if region_stats %}
+        <div class="section">
+            <h2>Regional Page Views</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Region</th>
+                        <th style="text-align: right;">Views</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for region_stat in region_stats %}
+                    <tr>
+                        <td style="font-weight: 600; text-transform: uppercase;">
+                            {{ region_stat.region }}
+                        </td>
+                        <td style="text-align: right; font-family: 'Courier New', monospace;">
+                            {{ region_stat.count|intcomma }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        
+        <!-- Top Referrers -->
+        {% if top_referrers %}
+        <div class="section">
+            <h2>Top Referrers</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Referrer URL</th>
+                        <th style="text-align: right;">Clicks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for referrer in top_referrers %}
+                    <tr>
+                        <td style="font-size: 0.8125rem; word-break: break-all;">
+                            {{ referrer.referer|truncatechars:80 }}
+                        </td>
+                        <td style="text-align: right; font-family: 'Courier New', monospace;">
+                            {{ referrer.count|intcomma }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Email Verified - QKB Intelligence{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card" style="border: 3px solid #121212; background: #ffffff;">
+                <div class="card-body p-5 text-center">
+                    <div class="mb-4" style="font-size: 3rem; color: #121212;">✓</div>
+                    <h2 class="mb-3" style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 4px solid #121212; padding-bottom: 1rem;">EMAIL VERIFIED!</h2>
+                    
+                    <p style="color: #666666; margin-bottom: 2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem;">
+                        YOUR EMAIL ADDRESS HAS BEEN SUCCESSFULLY VERIFIED. YOUR ACCOUNT IS NOW ACTIVE.
+                    </p>
+                    
+                    {% if user.is_authenticated %}
+                        <p style="color: #666666; font-size: 0.875rem; margin-bottom: 1.5rem; line-height: 1.6;">
+                            You're already logged in! Check your email for your welcome message.
+                        </p>
+                    {% else %}
+                        <p style="color: #666666; font-size: 0.875rem; margin-bottom: 1.5rem; line-height: 1.6;">
+                            Check your email for your welcome message with login details. 
+                            You can now log in to your account!
+                        </p>
+                    {% endif %}
+                    
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'accounts:dashboard' %}" class="btn" style="background: #121212; border: 3px solid #121212; color: #ffffff; padding: 0.75rem 2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none; display: inline-block;">GO TO DASHBOARD</a>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}" class="btn" style="background: #121212; border: 3px solid #121212; color: #ffffff; padding: 0.75rem 2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none; display: inline-block;">LOG IN</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
