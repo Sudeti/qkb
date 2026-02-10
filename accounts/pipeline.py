@@ -94,7 +94,7 @@ def create_user_profile(backend, user, response, *args, **kwargs):
     social_account_linked = kwargs.get('social_account_linked', False)
     
     # Create profile if it doesn't exist
-    profile, created = UserProfile.objects.get_or_create(user=user, defaults={'institution': ''})
+    profile, created = UserProfile.objects.get_or_create(user=user)
     if created:
         logger.info(f"Created new profile for user: {user.username}")
         

@@ -21,15 +21,6 @@ def dashboard(request):
     user = request.user
     profile, created = UserProfile.objects.get_or_create(user=user)
 
-    # Check if profile is incomplete (missing institution or position)
-    # Redirect to profile update if incomplete
-    if not profile.institution or not profile.position:
-        messages.info(
-            request,
-            'Please complete your profile by providing your institution and position.'
-        )
-        return redirect('accounts:profile_update')
-
     # Search usage stats
     is_premium = user.is_premium or user.is_superuser
     daily_limit = 0 if is_premium else 10

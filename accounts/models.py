@@ -74,7 +74,6 @@ class User(AbstractUser):
                 'first_name': profile.first_name,
                 'last_name': profile.last_name,
                 'phone': profile.phone,
-                'bio': profile.bio,
                 'avatar_url': profile.avatar.url if profile.avatar else None,
                 'created_at': profile.created_at.isoformat() if profile.created_at else None,
                 'updated_at': profile.updated_at.isoformat() if profile.updated_at else None,
@@ -116,9 +115,6 @@ class UserProfile(models.Model):
     first_name = models.CharField(max_length=100, blank=True)
     last_name = models.CharField(max_length=100, blank=True)
     phone = models.CharField(max_length=20, blank=True)
-    institution = models.CharField(max_length=300, help_text="Institution name", db_column='university', blank=True)
-    position = models.CharField(max_length=200, blank=True, help_text="Position or role")
-    bio = models.TextField(blank=True, max_length=500)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     
     # Timestamps

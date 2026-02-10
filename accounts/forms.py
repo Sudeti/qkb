@@ -28,24 +28,6 @@ class SignUpForm(UserCreationForm):
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
     
-    institution = forms.CharField(
-        max_length=300,
-        required=True,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Institution'
-        })
-    )
-    
-    position = forms.CharField(
-        max_length=200,
-        required=True,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Position or Role'
-        })
-    )
-    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Customize widget attributes for inherited fields
@@ -64,7 +46,7 @@ class SignUpForm(UserCreationForm):
     
     class Meta:
         model = User
-        fields = ('email', 'username', 'password1', 'password2', 'agree_terms', 'institution', 'position')
+        fields = ('email', 'username', 'password1', 'password2', 'agree_terms')
     
     def clean_email(self):
         """Ensure email is unique and lowercase"""
@@ -142,24 +124,9 @@ class ProfileUpdateForm(forms.ModelForm):
         required=False,
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )
-    institution = forms.CharField(
-        max_length=300,
-        required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control'})
-    )
-    position = forms.CharField(
-        max_length=200,
-        required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control'})
-    )
-    bio = forms.CharField(
-        required=False,
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4})
-    )
-    
     class Meta:
         model = UserProfile
-        fields = ['first_name', 'last_name', 'phone', 'institution', 'position', 'bio', 'avatar']
+        fields = ['first_name', 'last_name', 'phone', 'avatar']
         widgets = {
             'avatar': forms.FileInput(attrs={'class': 'form-control'})
         }

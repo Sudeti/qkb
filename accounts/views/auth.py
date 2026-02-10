@@ -44,10 +44,8 @@ def signup_view(request):
                 token = user.generate_verification_token()
                 user.save()
                 
-                # Create user profile with institution and position fields
-                institution = form.cleaned_data.get('institution', '').strip()
-                position = form.cleaned_data.get('position', '').strip()
-                UserProfile.objects.create(user=user, institution=institution, position=position)
+                # Create user profile
+                UserProfile.objects.create(user=user)
                 
                 # Log verification attempt
                 EmailVerificationLog.objects.create(
