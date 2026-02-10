@@ -18,7 +18,7 @@
                 <ul class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="/" style="color: #ffffff; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem;">SEARCH</a>
+                            <a class="nav-link" href="{% url 'companies:search' %}" style="color: #ffffff; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem;">SEARCH</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'accounts:dashboard' %}" style="color: #ffffff; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem;">DASHBOARD</a>

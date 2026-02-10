@@ -163,6 +163,37 @@ class EmailVerificationLog(models.Model):
         return deleted_count
 
 
+class PricingInquiry(models.Model):
+    """Stores plan upgrade requests from the pricing page"""
+    PLAN_CHOICES = [
+        ('professional', 'Professional — EUR 29/month'),
+        ('business', 'Business — EUR 79/month'),
+    ]
+
+    full_name = models.CharField(max_length=200)
+    email = models.EmailField()
+    company = models.CharField(max_length=300, blank=True)
+    plan = models.CharField(max_length=20, choices=PLAN_CHOICES)
+    message = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    # Link to user if they're logged in
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='pricing_inquiries',
+    )
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Pricing inquiries'
+
+    def __str__(self):
+        return f"{self.full_name} — {self.get_plan_display()} — {self.created_at:%Y-%m-%d}"
+
+
 class ClickTracking(models.Model):
     """Track page views and clicks for analytics"""
     PAGE_CHOICES = [

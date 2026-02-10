@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from .models import UserProfile
+from .models import UserProfile, PricingInquiry
 
 User = get_user_model()
 
@@ -130,3 +130,30 @@ class ProfileUpdateForm(forms.ModelForm):
         widgets = {
             'avatar': forms.FileInput(attrs={'class': 'form-control'})
         }
+
+
+class PricingInquiryForm(forms.ModelForm):
+    full_name = forms.CharField(
+        max_length=200,
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+    )
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={'class': 'form-control'}),
+    )
+    company = forms.CharField(
+        max_length=300,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+    )
+    plan = forms.ChoiceField(
+        choices=PricingInquiry.PLAN_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+    )
+    message = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+    )
+
+    class Meta:
+        model = PricingInquiry
+        fields = ['full_name', 'email', 'company', 'plan', 'message']

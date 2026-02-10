@@ -2,10 +2,10 @@ import re
 from datetime import date
 
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import Q
-from .models import Company
+from .models import Company, Shareholder, LegalRepresentative
 
 
 # Albanian NIPT pattern: letter + digits + letter (e.g., L91234567A)
@@ -36,10 +36,17 @@ def _check_and_increment_search(user):
     return True, FREE_DAILY_LIMIT - user.searches_today
 
 
+def landing(request):
+    if request.user.is_authenticated:
+        return redirect('companies:search')
+    return render(request, 'companies/landing.html')
+
+
 @login_required
 def search(request):
     query = request.GET.get('q', '').strip()
     results = []
+    person_results = []
     on_demand_triggered = False
     limit_reached = False
     searches_remaining = None
@@ -67,12 +74,10 @@ def search(request):
                 if fts_results.exists():
                     results = fts_results
                 else:
-                    # Fallback to icontains for companies without populated search_vector
+                    # Fallback to icontains on company name
                     results = Company.objects.filter(
                         Q(name__icontains=query) |
-                        Q(name_latin__icontains=query) |
-                        Q(shareholders__full_name__icontains=query) |
-                        Q(representatives__full_name__icontains=query)
+                        Q(name_latin__icontains=query)
                     ).distinct()[:50]
 
                 # If query looks like a NIPT and no results, trigger on-demand scrape
@@ -81,10 +86,50 @@ def search(request):
                     scrape_single_nipt_task.delay(query.upper())
                     on_demand_triggered = True
 
+            # Person search — always runs alongside company search
+            if not NIPT_PATTERN.match(query):
+                company_nipts = set()
+                if results:
+                    company_nipts = {c.nipt for c in results}
+
+                seen = set()
+                shareholder_matches = Shareholder.objects.filter(
+                    full_name__icontains=query
+                ).select_related('company')[:50]
+                for s in shareholder_matches:
+                    key = (s.company.nipt, s.full_name)
+                    if key not in seen:
+                        seen.add(key)
+                        pct = f"{s.ownership_pct:g}%" if s.ownership_pct else ''
+                        person_results.append({
+                            'company': s.company,
+                            'person_name': s.full_name,
+                            'role': 'Shareholder',
+                            'detail': pct,
+                            'in_company_results': s.company.nipt in company_nipts,
+                        })
+
+                rep_matches = LegalRepresentative.objects.filter(
+                    full_name__icontains=query
+                ).select_related('company')[:50]
+                for r in rep_matches:
+                    key = (r.company.nipt, r.full_name)
+                    if key not in seen:
+                        seen.add(key)
+                        person_results.append({
+                            'company': r.company,
+                            'person_name': r.full_name,
+                            'role': r.role,
+                            'detail': '',
+                            'in_company_results': r.company.nipt in company_nipts,
+                        })
+
     return render(request, 'companies/search.html', {
         'query': query,
         'results': results,
         'result_count': len(results) if isinstance(results, list) else results.count(),
+        'person_results': person_results,
+        'person_count': len(person_results),
         'on_demand_triggered': on_demand_triggered,
         'limit_reached': limit_reached,
         'searches_remaining': searches_remaining,

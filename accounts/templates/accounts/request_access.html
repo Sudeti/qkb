@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Request Access - QKB Intelligence{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card" style="border: 3px solid #121212; background: #ffffff;">
+                <div class="card-body p-5">
+                    <h2 class="text-center mb-4" style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 4px solid #121212; padding-bottom: 1rem;">REQUEST ACCESS</h2>
+
+                    <p class="text-center mb-4" style="color: #666666;">Fill out the form below and we'll get back to you within 24 hours with an invoice and account activation.</p>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.full_name.id_for_label }}" class="form-label" style="font-weight: 600; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem;">FULL NAME</label>
+                            {{ form.full_name }}
+                            {% if form.full_name.errors %}
+                                <div class="text-danger small mt-1">{{ form.full_name.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label" style="font-weight: 600; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem;">EMAIL</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small mt-1">{{ form.email.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.company.id_for_label }}" class="form-label" style="font-weight: 600; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem;">COMPANY <span style="font-weight: 400; color: #999999; text-transform: none;">(optional)</span></label>
+                            {{ form.company }}
+                            {% if form.company.errors %}
+                                <div class="text-danger small mt-1">{{ form.company.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.plan.id_for_label }}" class="form-label" style="font-weight: 600; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem;">PLAN</label>
+                            {{ form.plan }}
+                            {% if form.plan.errors %}
+                                <div class="text-danger small mt-1">{{ form.plan.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="{{ form.message.id_for_label }}" class="form-label" style="font-weight: 600; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem;">MESSAGE <span style="font-weight: 400; color: #999999; text-transform: none;">(optional)</span></label>
+                            {{ form.message }}
+                            {% if form.message.errors %}
+                                <div class="text-danger small mt-1">{{ form.message.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <button type="submit" class="btn w-100 mb-3" style="background: #121212; border: 3px solid #121212; color: #ffffff; padding: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">SUBMIT REQUEST</button>
+                    </form>
+
+                    <hr class="my-4" style="border-top: 3px solid #121212;">
+
+                    <p class="text-center mb-0" style="color: #666666; font-size: 0.875rem;">
+                        Payment via bank transfer. We'll send you a proforma invoice after reviewing your request.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control {
+    border: 3px solid #121212 !important;
+    background: #ffffff !important;
+    color: #121212 !important;
+    padding: 0.5rem 1rem !important;
+}
+
+.form-control:focus {
+    border-color: #121212 !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+</style>
+{% endblock %}

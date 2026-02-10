@@ -61,7 +61,7 @@
                         {% if user.is_authenticated and user.is_premium %}
                             <span style="padding: 0.75rem 2rem; border: 3px solid #ffffff; background: #ffffff; color: #121212; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; display: inline-block;">CURRENT PLAN</span>
                         {% else %}
-                            <a href="mailto:info@qkb.al?subject=Professional%20Plan%20Inquiry" style="padding: 0.75rem 2rem; border: 3px solid #ffffff; background: #ffffff; color: #121212; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none; display: inline-block;">CONTACT US</a>
+                            <a href="{% url 'accounts:request_access' %}?plan=professional" style="padding: 0.75rem 2rem; border: 3px solid #ffffff; background: #ffffff; color: #121212; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none; display: inline-block;">REQUEST ACCESS</a>
                         {% endif %}
                     </div>
                 </div>
@@ -86,7 +86,7 @@
                         <li>Dedicated account manager</li>
                     </ul>
                     <div class="text-center">
-                        <a href="mailto:info@qkb.al?subject=Business%20Plan%20Inquiry" style="padding: 0.75rem 2rem; border: 3px solid #121212; background: #ffffff; color: #121212; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none; display: inline-block;">CONTACT US</a>
+                        <a href="{% url 'accounts:request_access' %}?plan=business" style="padding: 0.75rem 2rem; border: 3px solid #121212; background: #ffffff; color: #121212; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none; display: inline-block;">REQUEST ACCESS</a>
                     </div>
                 </div>
             </div>
@@ -95,7 +95,7 @@
 
     <div class="text-center mt-5">
         <p style="color: #666666; font-size: 0.875rem;">
-            Payment via bank transfer. Contact <strong>info@qkb.al</strong> to set up your account.
+            Payment via bank transfer. Submit a request and we'll send you a proforma invoice within 24 hours.
         </p>
     </div>
 </div>

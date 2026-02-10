@@ -48,6 +48,10 @@
     .status-bankruptcy { background: #2e0a0a; color: #ef4444; }
     .status-in_liquidation { background: #2e1a0a; color: #f59e0b; }
 
+    .section-header { color: #888; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; margin: 24px 0 12px; padding-bottom: 8px; border-bottom: 1px solid #222; }
+    .person-role { font-size: 12px; color: #888; margin-top: 4px; }
+    .person-role .role-tag { display: inline-block; padding: 1px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; background: #1a1a2e; color: #8888cc; margin-right: 6px; }
+    .person-role .pct { color: #34d399; }
     .empty { text-align: center; padding: 60px 20px; color: #444; }
     .on-demand { background: #1a1a2e; border: 1px solid #2a2a4e; border-radius: 8px; padding: 18px 20px; margin-bottom: 16px; text-align: center; }
     .on-demand p { color: #8888cc; font-size: 14px; }
@@ -87,28 +91,53 @@
                 <p style="margin-top: 8px;"><a href="{% url 'accounts:pricing' %}">Upgrade to Professional</a> for unlimited searches.</p>
             </div>
         {% elif query %}
-            <div class="results-meta">{{ result_count }} result{{ result_count|pluralize }} for "{{ query }}"</div>
-            {% for company in results %}
-                <a href="{% url 'companies:company_detail' company.nipt %}" class="company-card">
-                    <div class="company-name">{{ company.name }}</div>
-                    <div class="company-nipt">{{ company.nipt }}</div>
-                    <div class="company-meta">
-                        <span class="status-badge status-{{ company.status }}">{{ company.get_status_display }}</span>
-                        <span>{{ company.get_legal_form_display }}</span>
-                        {% if company.city %}<span>{{ company.city }}</span>{% endif %}
-                        {% if company.registration_date %}<span>Reg. {{ company.registration_date }}</span>{% endif %}
-                    </div>
-                </a>
-            {% empty %}
+            <div class="results-meta">{{ result_count }} compan{{ result_count|pluralize:"y,ies" }}{% if person_count %}, {{ person_count }} person match{{ person_count|pluralize:"es" }}{% endif %} for "{{ query }}"</div>
+
+            {% if results %}
+                {% if person_results %}<div class="section-header">Companies</div>{% endif %}
+                {% for company in results %}
+                    <a href="{% url 'companies:company_detail' company.nipt %}" class="company-card">
+                        <div class="company-name">{{ company.name }}</div>
+                        <div class="company-nipt">{{ company.nipt }}</div>
+                        <div class="company-meta">
+                            <span class="status-badge status-{{ company.status }}">{{ company.get_status_display }}</span>
+                            <span>{{ company.get_legal_form_display }}</span>
+                            {% if company.city %}<span>{{ company.city }}</span>{% endif %}
+                            {% if company.registration_date %}<span>Reg. {{ company.registration_date }}</span>{% endif %}
+                        </div>
+                    </a>
+                {% endfor %}
+            {% endif %}
+
+            {% if person_results %}
+                <div class="section-header">Person matches</div>
+                {% for match in person_results %}
+                    <a href="{% url 'companies:company_detail' match.company.nipt %}" class="company-card">
+                        <div class="company-name">{{ match.company.name }}</div>
+                        <div class="company-nipt">{{ match.company.nipt }}</div>
+                        <div class="person-role">
+                            <span class="role-tag">{{ match.role }}</span>
+                            {{ match.person_name }}{% if match.detail %} <span class="pct">{{ match.detail }}</span>{% endif %}
+                        </div>
+                        <div class="company-meta">
+                            <span class="status-badge status-{{ match.company.status }}">{{ match.company.get_status_display }}</span>
+                            <span>{{ match.company.get_legal_form_display }}</span>
+                            {% if match.company.city %}<span>{{ match.company.city }}</span>{% endif %}
+                        </div>
+                    </a>
+                {% endfor %}
+            {% endif %}
+
+            {% if not results and not person_results %}
                 {% if on_demand_triggered %}
                 <div class="on-demand">
                     <p>Company not yet in our database. We're fetching it now.</p>
                     <p class="hint">Refresh this page in ~30 seconds.</p>
                 </div>
                 {% else %}
-                <div class="empty">No companies found.</div>
+                <div class="empty">No companies or people found.</div>
                 {% endif %}
-            {% endfor %}
+            {% endif %}
         {% else %}
             <div class="empty">Enter a company name, NIPT, or person's name to search.</div>
         {% endif %}

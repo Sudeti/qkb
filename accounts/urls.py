@@ -24,6 +24,7 @@ urlpatterns = [
     path('delete-account/', views.delete_account, name='delete_account'),
     path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
     path('pricing/', views.pricing, name='pricing'),
+    path('request-access/', views.request_access, name='request_access'),
     
     # Analytics (superuser only)
     path('analytics/', views.analytics_dashboard, name='analytics_dashboard'),

@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}QKB Intelligence — Albanian Company Registry{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div style="background: #ffffff; padding: 6rem 0 4rem;">
+    <div class="container text-center">
+        <h1 style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em; font-size: 2.75rem;">ALBANIAN COMPANY INTELLIGENCE</h1>
+        <p class="mt-3 mb-4" style="color: #666666; font-size: 1.25rem; max-width: 600px; margin-left: auto; margin-right: auto;">Search the Albanian business registry. Company details, shareholders, ownership chains — structured and searchable.</p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a href="{% url 'accounts:signup' %}" style="padding: 0.875rem 2.5rem; background: #121212; border: 3px solid #121212; color: #ffffff; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none; display: inline-block;">SIGN UP FREE</a>
+            <a href="{% url 'accounts:login' %}" style="padding: 0.875rem 2.5rem; background: #ffffff; border: 3px solid #121212; color: #121212; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none; display: inline-block;">LOG IN</a>
+        </div>
+    </div>
+</div>
+
+<!-- What you can do -->
+<div style="background: #f8f8f8; padding: 4rem 0; border-top: 4px solid #121212;">
+    <div class="container">
+        <h2 class="text-center mb-5" style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em;">WHAT YOU CAN DO</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100" style="border: 3px solid #121212; background: #ffffff;">
+                    <div class="card-body p-4">
+                        <h5 style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em;">SEARCH COMPANIES</h5>
+                        <p style="color: #333333;">Full-text search across company names, NIPTs, cities, and administrators. Instant results from 5,000+ registered entities.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100" style="border: 3px solid #121212; background: #ffffff;">
+                    <div class="card-body p-4">
+                        <h5 style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em;">CROSS-ENTITY LOOKUP</h5>
+                        <p style="color: #333333;">Search by shareholder or administrator name to find every company a person is connected to. Map relationships across entities.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100" style="border: 3px solid #121212; background: #ffffff;">
+                    <div class="card-body p-4">
+                        <h5 style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em;">OWNERSHIP TRACKING</h5>
+                        <p style="color: #333333;">See current shareholders and their stakes. Track ownership chains through parent companies to find ultimate beneficial owners.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100" style="border: 3px solid #121212; background: #ffffff;">
+                    <div class="card-body p-4">
+                        <h5 style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em;">CHANGE ALERTS</h5>
+                        <p style="color: #333333;">Ownership changes are detected and recorded automatically. See historical diffs of shareholder entries for any company.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100" style="border: 3px solid #121212; background: #ffffff;">
+                    <div class="card-body p-4">
+                        <h5 style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em;">ON-DEMAND DATA</h5>
+                        <p style="color: #333333;">Search for any Albanian NIPT. If it's not in our database yet, we fetch it live from the registry and have it ready in seconds.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100" style="border: 3px solid #121212; background: #ffffff;">
+                    <div class="card-body p-4">
+                        <h5 style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em;">NIGHTLY UPDATES</h5>
+                        <p style="color: #333333;">Data is refreshed automatically every night. Company details, shareholder lists, and legal representatives stay current.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Who it's for -->
+<div style="background: #ffffff; padding: 4rem 0; border-top: 4px solid #121212;">
+    <div class="container">
+        <h2 class="text-center mb-5" style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em;">WHO IT'S FOR</h2>
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-3">
+                <div class="text-center">
+                    <h5 style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em;">BANKS</h5>
+                    <p style="color: #333333;">KYC and due diligence on corporate clients and their ownership structures.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <h5 style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em;">LAW FIRMS</h5>
+                    <p style="color: #333333;">Verify company details, track legal representatives, and research counterparties.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <h5 style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em;">INVESTORS</h5>
+                    <p style="color: #333333;">Research target companies, map ownership networks, and monitor portfolio entities.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <h5 style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em;">ACCOUNTING</h5>
+                    <p style="color: #333333;">Look up client NIPTs, verify registration details, and check company status.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pricing summary -->
+<div style="background: #f8f8f8; padding: 4rem 0; border-top: 4px solid #121212;">
+    <div class="container">
+        <h2 class="text-center mb-5" style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em;">PRICING</h2>
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-4">
+                <div class="card h-100" style="border: 3px solid #121212; background: #ffffff;">
+                    <div class="card-body p-4 text-center">
+                        <h5 style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em;">FREE</h5>
+                        <div class="mb-2">
+                            <span style="font-size: 2rem; font-weight: 800; color: #121212;">EUR 0</span>
+                            <span style="color: #666666;">/month</span>
+                        </div>
+                        <p style="color: #333333;">10 searches per day. Basic company information.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100" style="border: 3px solid #121212; background: #121212; color: #ffffff;">
+                    <div class="card-body p-4 text-center">
+                        <h5 style="font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">PROFESSIONAL</h5>
+                        <div class="mb-2">
+                            <span style="font-size: 2rem; font-weight: 800;">EUR 29</span>
+                            <span style="color: #aaaaaa;">/month</span>
+                        </div>
+                        <p>Unlimited searches. Ownership chains and history.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100" style="border: 3px solid #121212; background: #ffffff;">
+                    <div class="card-body p-4 text-center">
+                        <h5 style="font-weight: 800; color: #121212; text-transform: uppercase; letter-spacing: 0.05em;">BUSINESS</h5>
+                        <div class="mb-2">
+                            <span style="font-size: 2rem; font-weight: 800; color: #121212;">EUR 79</span>
+                            <span style="color: #666666;">/month</span>
+                        </div>
+                        <p style="color: #333333;">API access. Bulk export. Priority support.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'accounts:pricing' %}" style="color: #121212; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">VIEW FULL PRICING DETAILS</a>
+        </div>
+    </div>
+</div>
+
+<!-- Final CTA -->
+<div style="background: #121212; padding: 4rem 0; border-top: 4px solid #121212;">
+    <div class="container text-center">
+        <h2 style="font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1.5rem;">START SEARCHING FOR FREE</h2>
+        <p style="color: #aaaaaa; font-size: 1.1rem; margin-bottom: 2rem;">Create an account and get 10 free searches per day. No credit card required.</p>
+        <a href="{% url 'accounts:signup' %}" style="padding: 0.875rem 2.5rem; background: #ffffff; border: 3px solid #ffffff; color: #121212; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none; display: inline-block;">SIGN UP FREE</a>
+    </div>
+</div>
+{% endblock %}

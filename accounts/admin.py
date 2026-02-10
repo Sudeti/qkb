@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.utils import timezone
 import logging
 from .models import (
-    User, UserProfile, EmailVerificationLog, ClickTracking
+    User, UserProfile, EmailVerificationLog, ClickTracking, PricingInquiry
 )
 
 logger = logging.getLogger('accounts')
@@ -85,3 +85,13 @@ class ClickTrackingAdmin(admin.ModelAdmin):
     
     def has_add_permission(self, request):
         return False  # Only created through tracking, not manually
+
+
+@admin.register(PricingInquiry)
+class PricingInquiryAdmin(admin.ModelAdmin):
+    list_display = ('full_name', 'email', 'company', 'plan', 'user', 'created_at')
+    list_filter = ('plan', 'created_at')
+    search_fields = ('full_name', 'email', 'company')
+    readonly_fields = ('created_at',)
+    date_hierarchy = 'created_at'
+    ordering = ('-created_at',)

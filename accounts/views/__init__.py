@@ -28,6 +28,7 @@ from .static import (
     verification_success,
     privacy_policy,
     pricing,
+    request_access,
 )
 
 # Analytics views
@@ -58,6 +59,7 @@ __all__ = [
     'verification_success',
     'privacy_policy',
     'pricing',
+    'request_access',
     # Analytics
     'analytics_dashboard',
     # Email functions
