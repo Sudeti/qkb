@@ -236,9 +236,13 @@ def _parse_detail_table(soup, data):
         for name in _split_names(board_str):
             data['administrators'].append({'full_name': name, 'role': 'Board Member'})
 
-    # Parse shareholders from "Parent Company / Owner" field
+    # Parse shareholders from "Parent Company / Owner" table field
     owner_str = fields.get('parent company / owner', fields.get('shoqëria mëmë/ ortaku', ''))
     data['shareholders'] = _parse_owner_string(owner_str)
+
+    # If no shareholders from table, try the <ul> "Shareholders/Ownership" section
+    if not data['shareholders']:
+        data['shareholders'] = _parse_shareholders_list(soup)
 
 
 # ──────────────────────────────────────────────
@@ -356,6 +360,81 @@ def _parse_owner_string(owner_str):
         nipt_match = re.search(r'NIPT\s+([A-Z]\d{7,9}[A-Z])', entry)
         if nipt_match:
             sh['parent_nipt'] = nipt_match.group(1)
+
+        shareholders.append(sh)
+
+    return shareholders
+
+
+def _parse_shareholders_list(soup):
+    """
+    Parse shareholders from the <ul class="list-group"> section
+    under the "Shareholders/Ownership" heading.
+
+    Each <li> contains an <a> with text like "Jolanda Trebicka - 100%"
+    or "SOME COMPANY SH.A - 51%".
+    """
+    import re
+    shareholders = []
+
+    # Find the heading — span.string is None when tag has mixed content,
+    # so match on get_text() instead
+    sh_heading = soup.find(
+        'span', string=lambda t: t and 'Shareholders' in t
+    )
+    if not sh_heading:
+        # Fallback: search all spans by text content
+        for span in soup.find_all('span'):
+            if 'Shareholders' in span.get_text() or 'Ortakë' in span.get_text():
+                sh_heading = span
+                break
+    if not sh_heading:
+        return shareholders
+
+    # Walk up to the title-divider or parent div, then find the next <ul>
+    parent_div = sh_heading.find_parent('div', class_='title-divider')
+    if not parent_div:
+        parent_div = sh_heading.find_parent('div')
+
+    ul = parent_div.find_next('ul', class_='list-group')
+    if not ul:
+        return shareholders
+
+    for li in ul.find_all('li', class_='list-group-item'):
+        a_tag = li.find('a')
+        text = a_tag.get_text(strip=True) if a_tag else li.get_text(strip=True)
+        if not text or len(text) < 2:
+            continue
+
+        # Split on " - " to separate name from percentage
+        # e.g. "Jolanda Trebicka - 100%"
+        parts = text.rsplit(' - ', 1)
+        name = parts[0].strip()
+
+        if not name or name.lower().startswith(('nuk ka', 'no data')):
+            continue
+
+        pct = None
+        if len(parts) > 1:
+            pct = _parse_percentage(parts[1])
+
+        company_markers = ['SH.A', 'SHPK', 'SH.P.K', 'LLC', 'GMBH', 'SRL', 'LTD', 'INC',
+                          'S.R.L', 'S.P.A', 'NYRT', 'B.V', 'A.G', 'HOLDING', 'BANK',
+                          'GROUP', 'CORP']
+        is_company = any(marker in name.upper() for marker in company_markers)
+
+        sh = {
+            'full_name': name[:300],
+            'shareholder_type': 'company' if is_company else 'individual',
+        }
+        if pct is not None:
+            sh['ownership_pct'] = pct
+
+        # Try to extract NIPT from the href
+        if a_tag and a_tag.get('href'):
+            nipt_match = re.search(r'([A-Z]\d{7,9}[A-Z])', a_tag.get('href', ''))
+            if nipt_match:
+                sh['parent_nipt'] = nipt_match.group(1)
 
         shareholders.append(sh)
 
