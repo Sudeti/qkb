@@ -1,6 +1,7 @@
 import re
 from datetime import date
 
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.postgres.search import SearchQuery, SearchRank
@@ -36,13 +37,12 @@ def _check_and_increment_search(user):
     return True, FREE_DAILY_LIMIT - user.searches_today
 
 
+@staff_member_required(login_url='accounts:login')
 def landing(request):
-    if request.user.is_authenticated:
-        return redirect('companies:search')
-    return render(request, 'companies/landing.html')
+    return redirect('companies:search')
 
 
-@login_required
+@staff_member_required(login_url='accounts:login')
 def search(request):
     query = request.GET.get('q', '').strip()
     results = []
@@ -137,7 +137,7 @@ def search(request):
     })
 
 
-@login_required
+@staff_member_required(login_url='accounts:login')
 def company_detail(request, nipt):
     company = get_object_or_404(Company, nipt=nipt)
     shareholders = company.shareholders.all()
