@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import Q
-from .models import Company, Shareholder, LegalRepresentative
+from .models import Company, Shareholder, LegalRepresentative, Tender
 
 
 # Albanian NIPT pattern: letter + digits + letter (e.g., L91234567A)
@@ -143,10 +143,12 @@ def company_detail(request, nipt):
     shareholders = company.shareholders.all()
     representatives = company.representatives.all()
     ownership_changes = company.ownership_changes.all()[:20]
+    tenders = company.tenders_won.all()[:50]
 
     return render(request, 'companies/company_detail.html', {
         'company': company,
         'shareholders': shareholders,
         'representatives': representatives,
         'ownership_changes': ownership_changes,
+        'tenders': tenders,
     })

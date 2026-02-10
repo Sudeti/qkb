@@ -18,22 +18,23 @@ Albanian Company Registry search and analytics platform. Scrapes opencorporates.
 qkb/
 ├── config/          # Django project config (settings, urls, celery, wsgi)
 ├── accounts/        # User auth app (custom User model, Google OAuth, email verification, GDPR)
-│   ├── models.py    # User, UserProfile, EmailVerificationLog, ClickTracking
+│   ├── models.py    # User, UserProfile, EmailVerificationLog, ClickTracking, PricingInquiry
 │   ├── views/       # Split into auth.py, user.py, emails.py, analytics.py, static.py
 │   ├── pipeline.py  # Social auth pipeline (Google OAuth user creation/linking)
-│   ├── forms.py     # Signup, login, profile update forms
+│   ├── forms.py     # Signup, login, profile update, PricingInquiry forms
 │   ├── urls.py      # /accounts/ namespace
-│   └── templates/accounts/  # Login, signup, dashboard, profile, verification, privacy, pricing
+│   └── templates/accounts/  # Login, signup, dashboard, profile, verification, privacy, pricing, request_access
 ├── companies/       # Main app
-│   ├── models.py    # Company, Shareholder, LegalRepresentative, OwnershipChange, ScrapeLog
-│   ├── admin.py     # Full admin with inlines for shareholders/reps/changes
-│   ├── views.py     # search (full-text + rate limiting), company_detail — @login_required
-│   ├── urls.py      # / and /company/<nipt>/
+│   ├── models.py    # Company, Shareholder, LegalRepresentative, OwnershipChange, Tender, ScrapeLog
+│   ├── admin.py     # Full admin with inlines for shareholders/reps/changes + Tender admin
+│   ├── views.py     # landing (public), search (full-text + person search + rate limiting), company_detail — @login_required
+│   ├── urls.py      # / (landing), /search/, /company/<nipt>/
 │   ├── scraper.py   # Two-phase scraper: listing API -> detail page parser -> DB upsert
 │   ├── tasks.py     # Celery tasks: run_full_scrape_task, scrape_single_nipt_task
 │   └── management/commands/
 │       ├── scrape.py                  # Management command for scraping
-│       └── populate_search_vectors.py # Backfill search_vector for all companies
+│       ├── populate_search_vectors.py # Backfill search_vector for all companies
+│       └── link_tenders.py            # Re-link tenders to companies after scraping
 ├── templates/       # Project-level templates
 │   ├── base.html    # Base template with Bootstrap 5, nav bar, messages
 │   ├── 404.html     # Error page
@@ -61,6 +62,7 @@ uv run python manage.py scrape                          # Scrape all categories
 uv run python manage.py scrape --categories banka       # Scrape only banks
 uv run python manage.py scrape --categories publike concession --limit 50  # Test run
 uv run python manage.py populate_search_vectors         # Backfill search vectors
+uv run python manage.py link_tenders                    # Re-link tenders to scraped companies
 ```
 
 ## Scraper architecture
@@ -89,7 +91,9 @@ Two-phase pipeline in `companies/scraper.py`:
 - **Shareholder** — linked to Company. Can be `individual` or `company` type. `parent_company` FK enables ownership chain traversal.
 - **LegalRepresentative** — administrator/director/board member of a company.
 - **OwnershipChange** — historical diffs of shareholder changes (old/new snapshots as JSON).
+- **Tender** — public procurement contract from APP bulletins. FK to Company via `winner_company` (auto-linked by NIPT on save, triggers on-demand scrape if company not in DB).
 - **ScrapeLog** — tracks each scraping run (counts, errors, status).
+- **PricingInquiry** (accounts app) — "Request Access" form submissions from pricing page.
 
 ## Architecture decisions
 
@@ -104,7 +108,7 @@ Two-phase pipeline in `companies/scraper.py`:
 - **Custom User model** (`accounts.User`) with email verification, `is_premium` flag, search rate tracking (`searches_today`, `searches_reset_date`), and GDPR data export/deletion.
 - **Google OAuth** via `social-auth-app-django`. Pipeline in `accounts/pipeline.py` handles existing-user linking, profile creation, and welcome emails.
 - **Email verification** — new users are inactive until they click a verification link. Email backend is env-configurable (console in dev, SMTP in production).
-- **`@login_required`** on all companies views — unauthenticated users redirect to `/accounts/login/`.
+- **`@login_required`** on search and company detail views. Landing page at `/` is public.
 - **Search rate limiting** — free users get 10 searches/day with counter reset at midnight. Premium users and superusers are unlimited. Rate limit banner on search page links to pricing.
 - **URL namespaces:** `accounts:` (login, signup, dashboard, pricing, etc.) and `social:` (Google OAuth flow).
 - **`.env` keys for Google OAuth:** `GOOGLE_OAUTH2_KEY`, `GOOGLE_OAUTH2_SECRET` (optional, sign-in button shows but won't work without them).
@@ -134,7 +138,10 @@ Two-phase pipeline in `companies/scraper.py`:
 - **API (DRF)** — not added yet. Add when banks/law firms need programmatic access.
 - **Ownership chain visualization** — data model supports it, UI doesn't render graphs yet.
 - **Bulk CSV export** — not yet implemented.
-- **Payment gateway** — pricing page shows contact CTA; no Stripe/payment integration.
+- **Payment gateway** — pricing page has "Request Access" form; no Stripe/payment integration.
+- **Ownership change alerts** — `CompanyWatch` model + watch button + post-scrape email notifications.
+- **KYC export** — PDF/CSV company report for compliance files.
+- **Automated tender parsing** — manual entry via admin works; automated APP bulletin PDF parsing not built yet.
 
 ## Database
 

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Company, Shareholder, LegalRepresentative, OwnershipChange, ScrapeLog
+from .models import Company, Shareholder, LegalRepresentative, OwnershipChange, Tender, ScrapeLog
 
 
 class ShareholderInline(admin.TabularInline):
@@ -61,6 +61,51 @@ class LegalRepresentativeAdmin(admin.ModelAdmin):
     list_display = ['full_name', 'role', 'company', 'appointed_date']
     search_fields = ['full_name', 'company__name']
     raw_id_fields = ['company']
+
+
+@admin.register(Tender)
+class TenderAdmin(admin.ModelAdmin):
+    list_display = ['winner_name', 'authority_name', 'title_short', 'contract_value_fmt', 'procedure_type', 'status', 'bulletin_date']
+    list_filter = ['status', 'procedure_type', 'bulletin_date']
+    search_fields = ['winner_name', 'winner_nipt', 'authority_name', 'title', 'reference_number']
+    raw_id_fields = ['winner_company']
+    date_hierarchy = 'bulletin_date'
+    readonly_fields = ['created_at', 'updated_at']
+
+    fieldsets = (
+        ('Bulletin', {
+            'fields': ('bulletin_number', 'bulletin_date', 'reference_number')
+        }),
+        ('Contracting Authority', {
+            'fields': ('authority_name', 'authority_type')
+        }),
+        ('Procurement', {
+            'fields': ('title', 'procedure_type', 'status')
+        }),
+        ('Financials', {
+            'fields': ('estimated_value', 'contract_value')
+        }),
+        ('Winner', {
+            'fields': ('winner_name', 'winner_nipt', 'winner_company')
+        }),
+        ('Details', {
+            'fields': ('contract_date', 'num_bidders', 'disqualified_bidders', 'subcontractors')
+        }),
+        ('Metadata', {
+            'classes': ('collapse',),
+            'fields': ('created_at', 'updated_at')
+        }),
+    )
+
+    @admin.display(description='Title')
+    def title_short(self, obj):
+        return obj.title[:60] + '...' if len(obj.title) > 60 else obj.title
+
+    @admin.display(description='Value (lekë)')
+    def contract_value_fmt(self, obj):
+        if obj.contract_value:
+            return f"{obj.contract_value:,.0f}"
+        return '-'
 
 
 @admin.register(ScrapeLog)

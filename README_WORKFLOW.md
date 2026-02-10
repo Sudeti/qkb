@@ -1,6 +1,6 @@
 # QKB Intelligence
 
-Albanian Company Registry intelligence platform. Scrapes company data, structures it relationally, and serves it as a searchable database with ownership chain mapping, change detection, and (soon) public procurement cross-linking.
+Albanian Company Registry intelligence platform. Scrapes company data, structures it relationally, and serves it as a searchable database with ownership chain mapping, change detection, and public procurement cross-linking.
 
 **Live at:** https://thelbi.al
 
@@ -18,7 +18,7 @@ The Albanian business registry (QKB) and opencorporates.al let you look up one c
 | "Show me every company where X is an administrator" | No | **Yes** |
 | "What changed about this company since last month?" | No | **Yes** (nightly change detection) |
 | "Alert me when this company's ownership changes" | No | **Planned** |
-| "This company just won a EUR 2M tender — who owns it?" | No | **Planned** (APP integration) |
+| "This company just won a EUR 2M tender — who owns it?" | No | **Yes** (APP tender data on company detail page) |
 | "Export 50 company profiles to CSV for KYC" | No | **Planned** |
 | "Show me the ownership chain through entities" | No | **Data model ready, UI not yet** |
 
@@ -134,8 +134,8 @@ Additional:
 1. Visit thelbi.al -> see public landing page (logged-in users redirect to `/search/`)
 2. Sign up (email + username + password) -> verify email -> login
 3. Dashboard shows search usage stats
-4. Search by company name or NIPT
-5. Click result -> company detail (shareholders, representatives, ownership changes)
+4. Search by company name, NIPT, or person name (cross-entity: shareholders + administrators)
+5. Click result -> company detail (shareholders, representatives, ownership changes, public procurement)
 6. If NIPT not in DB -> Celery scrapes it on demand, user told to refresh in 30s
 7. Free users hit limit -> see upgrade banner linking to pricing page
 
@@ -156,11 +156,12 @@ Stripe doesn't work well in Albania. That's fine. The target customers are busin
 ### Upgrade workflow
 
 1. User hits rate limit or visits `/accounts/pricing/` — sees tier comparison
-2. Clicks "CONTACT US" → sends email to `info@qkb.al` with subject line pre-filled
-3. You reply with a proforma invoice (bank details + amount + period)
-4. They pay via bank transfer
-5. You activate premium in Django admin (see below)
-6. They get unlimited access immediately
+2. Clicks "REQUEST ACCESS" → fills out form at `/accounts/request-access/?plan=professional` (or `business`)
+3. Submission saved to `PricingInquiry` model, visible in Django admin
+4. You reply with a proforma invoice (bank details + amount + period)
+5. They pay via bank transfer
+6. You activate premium in Django admin (see below)
+7. They get unlimited access immediately
 
 ### Activating / deactivating premium
 
@@ -234,81 +235,21 @@ The Albanian Public Procurement Agency publishes tender results. The data includ
 
 **Format:** Published as weekly PDF bulletins + the APP electronic procurement platform.
 
-### Technical integration plan
+### What's built
 
-#### New model: `Tender`
+The `Tender` model is in `companies/models.py` with full admin interface. See `README_TENDERS.md` for complete documentation.
 
-```python
-class Tender(models.Model):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='tenders')
-    title = models.TextField()                          # Tender description
-    contracting_authority = models.CharField(max_length=500)  # Ministry, municipality, etc.
-    value = models.DecimalField(max_digits=15, decimal_places=2, null=True)
-    currency = models.CharField(max_length=3, default='ALL')  # ALL or EUR
-    category = models.CharField(max_length=200, blank=True)
-    award_date = models.DateField()
-    source_url = models.URLField(blank=True)            # Link to APP bulletin
-    raw_text = models.TextField(blank=True)             # Original text for debugging
-    created_at = models.DateTimeField(auto_now_add=True)
+**Current workflow:** Manual entry via Django admin from weekly APP bulletin PDFs. Enter winner name, NIPT, authority, value, procedure type. On save:
+- If NIPT matches a Company in DB → auto-links the FK
+- If not → fires `scrape_single_nipt_task` to fetch the company, then run `link_tenders` to connect
 
-    class Meta:
-        indexes = [
-            models.Index(fields=['award_date']),
-            models.Index(fields=['company', '-award_date']),
-        ]
-```
+**Company detail page** shows a "Public Procurement" section listing all tenders won by that company.
 
-#### New scraper: `tenders/scraper.py`
+### What's next
 
-Pipeline:
-1. Download weekly APP PDF bulletins (or scrape the e-procurement platform)
-2. Parse PDF tables using `pdfplumber` or `tabula-py` to extract structured rows
-3. Match winning company to existing `Company` records via NIPT
-4. If company not in DB, trigger on-demand scrape (same as search)
-5. Create `Tender` record linked to `Company`
-
-#### New Celery task: weekly tender scrape
-
-```python
-# In Celery Beat schedule, alongside the nightly company scrape:
-'weekly-tender-scrape': {
-    'task': 'tenders.tasks.scrape_tenders_task',
-    'schedule': crontab(day_of_week=1, hour=6, minute=0),  # Monday 6 AM
-},
-```
-
-#### Alerts
-
-When a new `Tender` is created for a watched company, email the user:
-
-```
-Subject: ALBTELECOM sha won a new tender
-
-ALBTELECOM sha (NIPT: K11234567A) was awarded a tender:
-- Tender: Infrastructure maintenance for Q1 2026
-- Value: EUR 2,150,000
-- Contracting authority: Ministry of Transport
-- Award date: 2026-02-07
-
-Shareholders:
-- CETEL Group (100%) -> owned by Calik Holding (Turkey)
-
-Legal representatives:
-- John Doe (Administrator)
-
-View full details: https://thelbi.al/company/K11234567A/
-```
-
-#### Company detail page enhancement
-
-Add a "Tenders" tab to the company detail page showing all procurement wins, sorted by date, with values and contracting authorities.
-
-### Challenges
-
-- **PDF parsing is messy.** APP bulletins aren't always consistently formatted. Tables may span pages, column alignment varies. This is the hardest part technically.
-- **NIPT matching.** Some tender records may not include NIPT, only company name. Need fuzzy matching as fallback.
-- **Historical data.** APP archives go back years. Starting with current data and backfilling is the right approach (same as company changes).
-- **Volume.** Albania processes thousands of tenders per year. Storage and parsing are manageable, but the weekly scrape job needs to be robust.
+- **Automated bulletin parsing** — management command to parse APP PDF bulletins (regex on NIPTs, values, section headers)
+- **Tender alerts** — email users watching a company when it wins a new tender
+- **Weekly Celery task** — automated download + parse of APP bulletins
 
 ### Why this is a moat
 
@@ -370,21 +311,23 @@ This is a post-scrape Celery task — the hard part (change detection) is alread
 
 ### Phase 2 — Monetize (get first paying customers)
 
-- [ ] **Ownership change alerts** — user watches companies, gets emailed on changes. Premium feature. The change detection already works; this is just the notification layer.
-- [ ] **Invoice generation** — simple PDF proforma invoice with Albanian bank details. Send manually or auto-generate from admin.
-- [ ] **Bulk CSV export** — export search results or company lists for KYC workflows
+- [ ] **Ownership change alerts** — `CompanyWatch` model + "Watch" button + post-scrape email. The change detection already works; this is just the notification layer. **This is the #1 recurring value feature.**
+- [ ] **Exportable KYC reports** — PDF/CSV company report (ownership, admins, registration) formatted for compliance files. Compliance officers need paper trails.
+- [x] **Tender model + admin form** — `Tender` model with auto-linking by NIPT (on-demand scrape if company not in DB), admin with fieldsets, `link_tenders` management command. See `README_TENDERS.md`.
+- [ ] **QKB search fallback** — proxy queries to format.qkb.gov.al when local DB returns nothing. Instant coverage of 252K entities.
 
 ### Phase 3 — Differentiate (the moat)
 
-- [ ] **APP tender integration** — scrape weekly procurement bulletins, parse PDFs, cross-link with company data via NIPT. This is the killer feature.
-- [ ] **Tender alerts** — "Company X you're watching just won a tender." Combines company watching with tender data.
-- [ ] **Tender search** — search tenders by company, by contracting authority, by value range, by category
-- [ ] **Company detail: tenders tab** — show all procurement wins on the company page alongside ownership data
+- [ ] **QKB red flags on company detail** — call `search-for-subject-get-red-flag.php` per company. Show RPP/balance/admin compliance status. Banks need this.
+- [ ] **Tender alerts** — "Company X you're watching just won a tender." Weekly email combining company watching with tender data.
+- [ ] **Ownership chain visualization** — graph UI showing multi-level ownership via `parent_company` FK. Data model ready.
+- [ ] **APP tender scraper** — automated weekly PDF parsing from APP bulletins. Replace manual admin entry when volume justifies it. See `README_TENDERS.md`.
 
 ### Phase 4 — Scale
 
 - [ ] **REST API** (DRF) — for banks/law firms that want programmatic access
-- [ ] **Ownership chain visualization** — graph UI showing multi-level ownership
+- [ ] **Bulk CSV export** — export search results or company lists for KYC workflows
+- [ ] **QKB official data partnership** — contact QKB about bulk access / API with paying customers as leverage
 - [ ] **Kosovo expansion** — ARBK registry, same language, doubles the market
 - [ ] **Webhook alerts** — for API customers who want real-time notifications
 
@@ -392,16 +335,138 @@ This is a post-scrape Celery task — the hard part (change detection) is alread
 
 - [x] Company data model with relational shareholders and ownership chains
 - [x] Two-phase scraper (listing APIs -> detail pages -> upsert with change detection)
+- [x] Shareholder parsing from both HTML structures (table field + `<ul>` list)
 - [x] Full-text search with PostgreSQL SearchVector
+- [x] Cross-entity person search (shareholder + administrator name search with role annotations)
 - [x] On-demand scraping for unknown NIPTs
 - [x] User auth (signup, login, Google OAuth, email verification)
 - [x] Search rate limiting (free: 10/day, premium: unlimited)
 - [x] Pricing page (Free / Professional EUR 29/mo / Business EUR 79/mo)
+- [x] Request Access form (saves to PricingInquiry, visible in admin)
 - [x] Nightly scrape via Celery Beat (3:00 AM)
 - [x] GDPR compliance (data export, account deletion, privacy policy)
 - [x] Production deployment (Nginx + Gunicorn + Celery + SSL on DigitalOcean)
 - [x] Deploy script (`./deploy.sh`)
 - [x] Simplified profile (removed institution/position/bio — irrelevant for this product)
+- [x] Tender model with auto-linking by NIPT, on-demand scrape for unknown companies, admin interface, `link_tenders` command
+- [x] Public procurement section on company detail page
+
+---
+
+## Data sources
+
+### Two sources, two purposes
+
+| | opencorporates.al | QKB official (format.qkb.gov.al) |
+|---|---|---|
+| **What it is** | Third-party aggregator of QKB data | Official Albanian business registry |
+| **Total entities** | ~5,140 (categorized) | ~252,143 |
+| **Shareholder %** | Yes (parsed from detail pages) | No (names only, no percentages) |
+| **Role separation** | Yes (admin vs shareholder) | No (all lumped in one field) |
+| **Person search** | Need to build (done) | Native search field |
+| **Bulk download** | Yes (listing APIs return all NIPTs) | No (50 result cap per query) |
+| **Compliance flags** | No | Yes (RPP, balance sheet, admin flags) |
+| **Beneficial owners** | No | Yes (RPP registry) |
+| **Format** | HTML tables (needs parsing) | JSON (embedded in page) |
+| **Rate limiting** | 1.5s polite delay | WAF + cookie-gated |
+
+**Current architecture:** opencorporates.al only (bulk scrape + on-demand).
+
+**Target architecture:** Both sources combined:
+1. **opencorporates.al** for bulk data ingestion + detailed ownership (%, role separation, chains)
+2. **QKB official** for search fallback (252K entities) + compliance red flags + beneficial owners
+
+### QKB official API (format.qkb.gov.al)
+
+The official QKB registry has a web search at `format.qkb.gov.al/kerko-per-subjekt/` that returns structured JSON. Not a documented API, but a PHP form that returns data embedded in the page.
+
+**How it works:**
+
+```python
+import httpx, re, json
+
+client = httpx.Client(headers={
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+}, follow_redirects=True)
+
+# Step 1: GET to obtain WAF cookies
+client.get('https://format.qkb.gov.al/kerko-per-subjekt/')
+
+# Step 2: POST search params
+resp = client.post('https://format.qkb.gov.al/kerko-per-subjekt/', data={
+    'nipt': 'L61926006R',            # Search by NIPT
+    # 'emriISubjektit': 'Credins',   # Or by company name
+    # 'aksionerOrtak': 'Trebicka',   # Or by shareholder/partner name
+    # 'administrator': 'Trebicka',   # Or by administrator name
+})
+
+# Step 3: Extract JSON from embedded JavaScript variable
+match = re.search(r'response\s*=\s*JSON\.parse\("(.*?)"\);', resp.text, re.DOTALL)
+raw = match.group(1).replace('\\"', '"').replace('\\\\', '\\')
+data = json.loads(raw)
+```
+
+**Search fields available:**
+
+| Field | Description |
+|-------|-------------|
+| `nipt` | NIPT/NUIS tax number |
+| `emriISubjektit` | Company name |
+| `emriTregtar` | Trade name |
+| `administrator` | Administrator name |
+| `aksionerOrtak` | Shareholder/partner name |
+| `formeLigjore` | Legal form (SHPK, SHA, PF, etc.) |
+| `pronesia` | Ownership type |
+| `dataNga` / `dataNe` | Registration date range (dd/mm/yyyy) |
+| `sektoriIVeprimtarise` | Business sector |
+| `qarku` / `qyteti` | District / city |
+
+**JSON response fields:**
+
+```json
+{
+  "nipti": "L61926006R",
+  "emriISubjektit": "EPDC ( Europartners Development Consulting )",
+  "emriTregtar": "EPDC ( Europartners Development Consulting )",
+  "sektoriIVeprimtarise": "Konsulence juridike...",
+  "adminOrtakAksionar": "Jolanda Trebicka;",
+  "formaLigjore": "SHPK",
+  "statusiISubjektit": "Aprovuar",
+  "dataERegjistrimit": "26/07/2016",
+  "qyteti": "Tirane",
+  "shtetesia": "Shqiptare (100%)",
+  "rppRedFlagText": "",
+  "bilanciRedFlagText": "",
+  "adminRedFlagText": "",
+  "showRedFlag": false
+}
+```
+
+**Red flag endpoint (separate POST):**
+
+```python
+base = 'https://format.qkb.gov.al/wp-content/themes/twentytwentyfive-child/modules/search/national-registry/subject/'
+resp = client.post(base + 'search-for-subject-get-red-flag.php', data={'nipt': 'L61926006R'})
+# Returns: {"status": 1, "data": {"rppRedFlagText": "", "bilanciRedFlagText": "", "adminRedFlagText": "", "showRedFlag": false}}
+```
+
+**Limitations:**
+- 50 results max per query
+- Broad queries (e.g. all SHPK in Tirane) return nothing — needs specific search terms
+- WAF blocks requests without browser-like User-Agent; must GET first for cookies
+- `adminOrtakAksionar` combines all names (admin + shareholder) — no role separation, no ownership %
+- No bulk download — can't use this to seed the database
+
+### Integration roadmap
+
+**Phase 1 (now):** opencorporates.al only. Seed DB with ~5,000 categorized companies. On-demand scrape for unknown NIPTs. Nightly refresh.
+
+**Phase 2 (after first users):** Add QKB as search fallback. When person/company search returns nothing from local DB, proxy the query to QKB. Instantly covers 252K entities. On-demand scrape from opencorporates.al for detailed ownership when user clicks through.
+
+**Phase 3 (after first paying customers):** Add QKB red flags to company detail pages. One extra API call per view. Show RPP (beneficial owner) compliance status. Banks need this.
+
+**Phase 4 (when justified):** Contact QKB about official data access / API. With paying customers, you have leverage to negotiate bulk access or partnership.
 
 ---
 
@@ -455,8 +520,8 @@ No way to reconstruct past changes. The `OwnershipChange` model diffs shareholde
 - `REQUEST_DELAY` (1.5s) between requests
 - User-Agent identifies the bot
 
-**If HTML changes:** Only `_parse_detail_table()` in `scraper.py` needs updating.
-**If they block you:** Scrape QKB directly or use the official gazette.
+**If HTML changes:** Only `_parse_detail_table()` and `_parse_shareholders_list()` in `scraper.py` need updating.
+**If they block you:** Fall back to QKB official (format.qkb.gov.al) — see Data sources section. Less detail (no ownership %) but covers 252K entities.
 
 ### 2. Shareholder parsing is ~80-90% accurate
 
@@ -554,18 +619,18 @@ ls -la /run/gunicorn/
 qkb/
 ├── config/                        # Django settings, urls, celery
 ├── accounts/                      # User auth app
-│   ├── models.py                  # User, UserProfile, EmailVerificationLog, ClickTracking
+│   ├── models.py                  # User, UserProfile, EmailVerificationLog, ClickTracking, PricingInquiry
 │   ├── views/                     # auth.py, user.py, emails.py, analytics.py, static.py
 │   ├── pipeline.py                # Google OAuth pipeline
-│   ├── forms.py                   # Signup, login, profile forms
+│   ├── forms.py                   # Signup, login, profile, PricingInquiry forms
 │   └── templates/accounts/
 ├── companies/                     # Main app
-│   ├── models.py                  # Company, Shareholder, LegalRepresentative, OwnershipChange, ScrapeLog
+│   ├── models.py                  # Company, Shareholder, LegalRepresentative, OwnershipChange, Tender, ScrapeLog
 │   ├── scraper.py                 # Two-phase scraper pipeline
 │   ├── tasks.py                   # Celery tasks
-│   ├── views.py                   # search + company_detail
-│   ├── admin.py                   # Admin with inlines
-│   └── management/commands/       # scrape, populate_search_vectors
+│   ├── views.py                   # landing (public), search (+ person search), company_detail
+│   ├── admin.py                   # Admin with inlines + Tender admin
+│   └── management/commands/       # scrape, populate_search_vectors, link_tenders
 ├── templates/                     # base.html, error pages
 ├── deploy.sh                      # Production deploy script
 ├── .env                           # Secrets (not committed)
@@ -573,9 +638,12 @@ qkb/
 ```
 
 ### Key files for future work
-- **Fix parsing bugs:** `companies/scraper.py` -> `_parse_detail_table()`, `_parse_owner_string()`
+- **Fix parsing bugs:** `companies/scraper.py` -> `_parse_detail_table()`, `_parse_owner_string()`, `_parse_shareholders_list()`
 - **Add new features:** `companies/views.py` + `companies/urls.py`
-- **Add tender integration:** new `tenders/` app, same scraper pattern
+- **Add QKB fallback:** new util in `companies/` that queries format.qkb.gov.al (see Data sources section for API details)
+- **Add tender data:** enter via Django admin → Tenders. Auto-links to Company by NIPT. Run `link_tenders` after scrapes. See `README_TENDERS.md`
+- **Add watch/alerts:** `CompanyWatch` model + post-scrape Celery task + email
+- **Add KYC export:** view that generates PDF/CSV for a company (ownership + admins + registration)
 - **Add API:** `uv add djangorestframework`, add serializers + viewsets
 - **Change search fields:** update `SearchVector(...)` in `scraper.py:upsert_company()`
 - **Change rate limits:** edit `FREE_DAILY_LIMIT` in `companies/views.py`

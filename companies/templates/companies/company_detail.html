@@ -42,6 +42,12 @@
     .change-date { font-size: 12px; color: #888; font-family: monospace; }
     .change-desc { margin-top: 4px; font-size: 14px; }
 
+    .tender-card { background: #161616; border: 1px solid #222; border-radius: 6px; padding: 16px; margin-bottom: 10px; }
+    .tender-title { font-size: 14px; color: #ddd; margin-bottom: 8px; }
+    .tender-meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: #666; }
+    .tender-value { color: #34d399; font-weight: 600; font-family: monospace; }
+    .tender-authority { color: #8888cc; }
+
     /* Override navbar for dark page */
     .navbar { background: #0a0a0a !important; border-bottom-color: #1a1a1a !important; }
 </style>
@@ -127,6 +133,23 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+        {% endif %}
+
+        {% if tenders %}
+        <div class="section">
+            <h2>Public Procurement ({{ tenders|length }})</h2>
+            {% for t in tenders %}
+            <div class="tender-card">
+                <div class="tender-title">{{ t.title }}</div>
+                <div class="tender-meta">
+                    <span class="tender-value">{{ t.contract_value|floatformat:0 }} lekë</span>
+                    <span class="tender-authority">{{ t.authority_name }}</span>
+                    <span>{{ t.get_procedure_type_display }}</span>
+                    {% if t.contract_date %}<span>{{ t.contract_date }}</span>{% endif %}
+                </div>
+            </div>
+            {% endfor %}
         </div>
         {% endif %}
 

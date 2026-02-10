@@ -149,6 +149,93 @@ class OwnershipChange(models.Model):
         return f"{self.company.name} - {self.change_date}"
 
 
+class Tender(models.Model):
+    """
+    Public procurement contract from APP (Agjencia e Prokurimit Publik) bulletins.
+    Weekly bulletins list awarded contracts with company NIPTs and values.
+    """
+    PROCEDURE_TYPES = [
+        ('open', 'Procedurë e Hapur'),
+        ('restricted', 'Procedurë e Kufizuar'),
+        ('negotiated', 'Procedurë me Negocim'),
+        ('proposal', 'Kërkesë për Propozim'),
+        ('consultancy', 'Shërbim Konsulence'),
+        ('small_value', 'Vlerë e Vogël'),
+        ('design_contest', 'Konkurs Projektimi'),
+        ('other', 'Other'),
+    ]
+
+    STATUS_CHOICES = [
+        ('awarded', 'Awarded'),
+        ('cancelled', 'Cancelled'),
+        ('appealed', 'Appealed'),
+    ]
+
+    # Bulletin reference
+    bulletin_number = models.CharField(max_length=50, blank=True, help_text="APP bulletin number (e.g., 'Nr. 5')")
+    bulletin_date = models.DateField(null=True, blank=True, help_text="Publication date of the bulletin")
+    reference_number = models.CharField(max_length=100, blank=True, db_index=True, help_text="Procedure reference (REF-xxxxx-xx-xx-xx)")
+
+    # Contracting authority
+    authority_name = models.CharField(max_length=500, help_text="Contracting authority name")
+    authority_type = models.CharField(max_length=100, blank=True, help_text="e.g., SH.A, Ministry, Municipality")
+
+    # Procurement details
+    title = models.TextField(help_text="Procurement object description")
+    procedure_type = models.CharField(max_length=20, choices=PROCEDURE_TYPES, default='open')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='awarded')
+
+    # Financials (in ALL/lekë)
+    estimated_value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, help_text="Fondi limit (estimated value in lekë)")
+    contract_value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, help_text="Vlera e kontratës (contract value in lekë, excl. VAT)")
+
+    # Winner
+    winner_company = models.ForeignKey(
+        Company,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='tenders_won',
+        help_text="Link to company in our DB (auto-linked by NIPT)"
+    )
+    winner_name = models.CharField(max_length=500, help_text="Winner company name as listed in bulletin")
+    winner_nipt = models.CharField(max_length=20, blank=True, db_index=True, help_text="Winner NIPT from bulletin")
+
+    # Dates
+    contract_date = models.DateField(null=True, blank=True, help_text="Date contract was signed")
+
+    # Metadata
+    num_bidders = models.PositiveIntegerField(null=True, blank=True, help_text="Number of bidders")
+    disqualified_bidders = models.JSONField(default=list, blank=True, help_text="List of disqualified bidders [{name, nipt, reason}]")
+    subcontractors = models.JSONField(default=list, blank=True, help_text="List of subcontractors [{name, nipt, value}]")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-bulletin_date', '-contract_date']
+        indexes = [
+            models.Index(fields=['winner_nipt']),
+            models.Index(fields=['authority_name']),
+            models.Index(fields=['bulletin_date']),
+            models.Index(fields=['reference_number']),
+        ]
+
+    def __str__(self):
+        return f"{self.winner_name} — {self.title[:80]}"
+
+    def save(self, *args, **kwargs):
+        # Auto-link winner_company by NIPT if not already set
+        if self.winner_nipt and not self.winner_company_id:
+            try:
+                self.winner_company = Company.objects.get(nipt=self.winner_nipt)
+            except Company.DoesNotExist:
+                # Trigger on-demand scrape so the company gets added to our DB
+                from .tasks import scrape_single_nipt_task
+                scrape_single_nipt_task.delay(self.winner_nipt.upper())
+        super().save(*args, **kwargs)
+
+
 class ScrapeLog(models.Model):
     STATUS_CHOICES = [
         ('running', 'Running'),
